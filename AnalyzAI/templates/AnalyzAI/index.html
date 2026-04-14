@@ -1,0 +1,122 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnalyzAI | Экспертная оценка научных отчетов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'AnalyzAI/style.css' %}">
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay" aria-hidden="true">
+        <div class="loading-card" role="status" aria-live="polite">
+            <span class="loading-spinner"></span>
+            <h2 data-i18n="loading_title">Идет AI-анализ</h2>
+            <p data-i18n="loading_text">Проверяем структуру отчета, критерии, язык и рыночную применимость.</p>
+        </div>
+    </div>
+
+    <main class="page-shell">
+        <div class="topbar">
+            <div class="brand-mark">
+                <div class="brand-icon" aria-hidden="true">
+                    <span>A</span>
+                </div>
+                <div class="brand-copy">
+                    <strong class="brand-title">AnalyzAI</strong>
+                    <small class="brand-subtitle" data-i18n="brand_subtitle">Scientific Review Platform</small>
+                </div>
+            </div>
+
+            <div class="topbar-actions">
+                <div class="language-switcher" aria-label="Language switcher">
+                    <button type="button" class="language-button is-active" data-lang="ru">RU</button>
+                    <button type="button" class="language-button" data-lang="kz">KZ</button>
+                    <button type="button" class="language-button" data-lang="en">EN</button>
+                </div>
+
+                <button type="button" class="theme-toggle" id="themeToggle" aria-label="Переключить тему" aria-pressed="false" title="Сменить светлый или темный режим">
+                    <span class="theme-toggle-icon theme-toggle-icon-sun" aria-hidden="true">☀</span>
+                    <span class="theme-toggle-icon theme-toggle-icon-moon" aria-hidden="true">☾</span>
+                </button>
+            </div>
+        </div>
+
+        <section class="hero-card">
+            <div class="hero-copy">
+                <p class="eyebrow">Scientific Report Review MVP</p>
+                <h1 data-i18n="hero_title">Экспертная оценка научных отчетов в одном окне</h1>
+                <p class="hero-text" data-i18n="hero_text">
+                    Загрузите задание и отчет, а система покажет соответствие шаблону, баллы по критериям,
+                    ошибки языка, анализ рынка, рекомендации и итоговое решение.
+                </p>
+            </div>
+            <div class="hero-badge">
+                <span>AnalyzAI</span>
+                <small>AI Review Active</small>
+            </div>
+        </section>
+
+        <section class="panel form-panel form-panel-single">
+            <div class="panel-header">
+                <h2 data-i18n="form_title">Данные для анализа</h2>
+                <p data-i18n="form_text">Введите текст вручную или загрузите файлы. Для каждого блока достаточно текста или файла.</p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="analysis-form" id="analysisForm">
+                {% csrf_token %}
+
+                <div class="field-group">
+                    <label for="{{ form.assignment_text.id_for_label }}" data-i18n="assignment_text_label">{{ form.assignment_text.label }}</label>
+                    {{ form.assignment_text }}
+                    {% for error in form.assignment_text.errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="field-group">
+                    <label for="{{ form.assignment_file.id_for_label }}" data-i18n="assignment_file_label">{{ form.assignment_file.label }}</label>
+                    {{ form.assignment_file }}
+                    {% for error in form.assignment_file.errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="field-group">
+                    <label for="{{ form.report_text.id_for_label }}" data-i18n="report_text_label">{{ form.report_text.label }}</label>
+                    {{ form.report_text }}
+                    {% for error in form.report_text.errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="field-group">
+                    <label for="{{ form.report_file.id_for_label }}" data-i18n="report_file_label">{{ form.report_file.label }}</label>
+                    {{ form.report_file }}
+                    {% for error in form.report_file.errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="form-errors">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <button type="submit" class="submit-button" id="submitButton">
+                    <span class="button-text" data-i18n="analyze_button">Анализировать</span>
+                    <span class="button-loader" aria-hidden="true"></span>
+                </button>
+            </form>
+        </section>
+    </main>
+
+    <script src="{% static 'AnalyzAI/app.js' %}"></script>
+</body>
+</html>

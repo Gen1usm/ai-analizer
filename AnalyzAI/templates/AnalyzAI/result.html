@@ -1,0 +1,446 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnalyzAI | Результат анализа</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'AnalyzAI/style.css' %}">
+</head>
+<body>
+    <main class="page-shell">
+        <div class="topbar">
+            <div class="brand-mark">
+                <div class="brand-icon" aria-hidden="true">
+                    <span>A</span>
+                </div>
+                <div class="brand-copy">
+                    <strong class="brand-title">AnalyzAI</strong>
+                    <small class="brand-subtitle" data-i18n="brand_subtitle">Scientific Review Platform</small>
+                </div>
+            </div>
+
+            <div class="topbar-actions">
+                <a href="{% url 'AnalyzAI:index' %}" class="back-link" data-i18n="new_analysis">Новый анализ</a>
+                <div class="language-switcher" aria-label="Language switcher">
+                    <button type="button" class="language-button is-active" data-lang="ru">RU</button>
+                    <button type="button" class="language-button" data-lang="kz">KZ</button>
+                    <button type="button" class="language-button" data-lang="en">EN</button>
+                </div>
+                <button type="button" class="theme-toggle" id="themeToggle" aria-label="Переключить тему" aria-pressed="false" title="Сменить светлый или темный режим">
+                    <span class="theme-toggle-icon theme-toggle-icon-sun" aria-hidden="true">☀</span>
+                    <span class="theme-toggle-icon theme-toggle-icon-moon" aria-hidden="true">☾</span>
+                </button>
+            </div>
+        </div>
+
+        <section class="panel analysis-source-panel">
+            <div class="panel-header">
+                <h2 data-i18n="analysis_data_title">Данные для анализа</h2>
+                <p data-i18n="analysis_data_text">Ниже показаны материалы, на основе которых был сформирован итоговый AI-анализ.</p>
+            </div>
+
+            <div class="analysis-source-grid">
+                <div class="analysis-source-card">
+                    <h3 data-i18n="assignment_text_label">Текст задания</h3>
+                    {% if assignment_file_name %}
+                        <p class="analysis-source-file"><strong data-i18n="source_file">Файл:</strong> {{ assignment_file_name }}</p>
+                    {% endif %}
+                    <div class="analysis-source-preview" data-expandable-block>
+                        <div class="analysis-source-text is-collapsed" data-expandable-content>{{ assignment_text|linebreaksbr }}</div>
+                        <button
+                            type="button"
+                            class="expand-toggle"
+                            data-expandable-toggle
+                            data-i18n-expand="expand_text"
+                            data-i18n-collapse="collapse_text"
+                            aria-expanded="false"
+                        >
+                            Развернуть
+                        </button>
+                    </div>
+                </div>
+
+                <div class="analysis-source-card">
+                    <h3 data-i18n="report_text_label">Текст отчета</h3>
+                    {% if report_file_name %}
+                        <p class="analysis-source-file"><strong data-i18n="source_file">Файл:</strong> {{ report_file_name }}</p>
+                    {% endif %}
+                    <div class="analysis-source-preview" data-expandable-block>
+                        <div class="analysis-source-text is-collapsed" data-expandable-content>{{ report_text|linebreaksbr }}</div>
+                        <button
+                            type="button"
+                            class="expand-toggle"
+                            data-expandable-toggle
+                            data-i18n-expand="expand_text"
+                            data-i18n-collapse="collapse_text"
+                            aria-expanded="false"
+                        >
+                            Развернуть
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel result-panel result-panel-stacked">
+            <div class="panel-header">
+                <h2 data-i18n="result_title">Результат</h2>
+                <p data-i18n="result_text">После анализа здесь появится подробный экспертный вывод по структуре, качеству отчета и перспективам внедрения.</p>
+            </div>
+
+            <div class="result-stack">
+                <section class="result-card result-card-ready hero-result-card">
+                    <div class="hero-result-head">
+                        <span class="result-status" data-i18n="analysis_done">Анализ завершен</span>
+                        <span class="decision-pill">{{ result.final_decision|default:"без вывода" }}</span>
+                    </div>
+                    <h3 data-i18n="report_comment">Комментарий по отчету</h3>
+                    <p>{{ result.summary_comment|default:"Комментарий пока не сформирован." }}</p>
+                    <div class="score-grid compact-grid">
+                        <div class="score-box score-box-primary score-ring-card">
+                            <div class="score-ring" data-score="{{ result.total_score|default:0 }}">
+                                <div class="score-ring-inner">
+                                    <strong>{{ result.total_score }}%</strong>
+                                </div>
+                            </div>
+                            <span data-i18n="total_score">Итоговый балл</span>
+                        </div>
+                        <div class="score-box">
+                            <strong>{{ result.template_compliance.overall_score }}</strong>
+                            <span data-i18n="template_match">Соответствие шаблону</span>
+                        </div>
+                        <div class="score-box">
+                            <strong>{{ result.win_probability_percent }}%</strong>
+                            <span data-i18n="win_chance">Шанс выигрыша</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="result-card">
+                    <h3 data-i18n="template_section">Соответствие шаблону</h3>
+                    <div class="dual-grid">
+                        <div class="result-subsection">
+                            <h4 data-i18n="missing_sections">Отсутствующие разделы</h4>
+                            {% if result.template_compliance.missing_sections %}
+                                <ul class="result-list">
+                                    {% for item in result.template_compliance.missing_sections %}
+                                        <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p data-i18n="missing_sections_empty">Критических пропусков по обязательным разделам не выявлено.</p>
+                            {% endif %}
+                        </div>
+                        <div class="result-subsection">
+                            <h4 data-i18n="problems">Проблемы</h4>
+                            {% if result.template_compliance.problems %}
+                                <ul class="result-list">
+                                    {% for item in result.template_compliance.problems %}
+                                        <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p data-i18n="problems_empty">Явные структурные проблемы не зафиксированы.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="result-card">
+                    <h3 data-i18n="criteria_title">Оценки по критериям</h3>
+                    <div class="criteria-chart-panel criteria-chart-panel-wide">
+                        <div class="criteria-chart-copy">
+                            <h4 data-i18n="criteria_chart_title">Диаграмма весов критериев</h4>
+                            <p data-i18n="criteria_chart_text">Размер сектора показывает вес критерия, а рядом в легенде указан выставленный балл.</p>
+                        </div>
+                        <div class="criteria-chart-layout">
+                            <div class="criteria-chart-bars">
+                                {% with score=result.criteria_scores.strategic_relevance.score %}
+                                <article class="criteria-legend-item criteria-legend-item-strategic">
+                                    <div class="criteria-bar-head">
+                                        <span data-i18n="criterion_strategic">Стратегическая релевантность</span>
+                                        <div class="criteria-bar-meta">
+                                            <strong>{{ score }}%</strong>
+                                            <span class="criteria-bar-status">
+                                                {% if score >= 75 %}Высокая{% elif score >= 50 %}Средняя{% else %}Низкая{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="criteria-bar-track">
+                                        <div class="criteria-bar-fill" style="width: {{ score }}%"></div>
+                                    </div>
+                                </article>
+                                {% endwith %}
+
+                                {% with score=result.criteria_scores.goal_and_tasks.score %}
+                                <article class="criteria-legend-item criteria-legend-item-goal">
+                                    <div class="criteria-bar-head">
+                                        <span data-i18n="criterion_goal">Цель и задачи</span>
+                                        <div class="criteria-bar-meta">
+                                            <strong>{{ score }}%</strong>
+                                            <span class="criteria-bar-status">
+                                                {% if score >= 75 %}Высокая{% elif score >= 50 %}Средняя{% else %}Низкая{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="criteria-bar-track">
+                                        <div class="criteria-bar-fill" style="width: {{ score }}%"></div>
+                                    </div>
+                                </article>
+                                {% endwith %}
+
+                                {% with score=result.criteria_scores.scientific_novelty.score %}
+                                <article class="criteria-legend-item criteria-legend-item-novelty">
+                                    <div class="criteria-bar-head">
+                                        <span data-i18n="criterion_novelty">Научная новизна</span>
+                                        <div class="criteria-bar-meta">
+                                            <strong>{{ score }}%</strong>
+                                            <span class="criteria-bar-status">
+                                                {% if score >= 75 %}Высокая{% elif score >= 50 %}Средняя{% else %}Низкая{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="criteria-bar-track">
+                                        <div class="criteria-bar-fill" style="width: {{ score }}%"></div>
+                                    </div>
+                                </article>
+                                {% endwith %}
+
+                                {% with score=result.criteria_scores.practical_applicability.score %}
+                                <article class="criteria-legend-item criteria-legend-item-practical">
+                                    <div class="criteria-bar-head">
+                                        <span data-i18n="criterion_practical">Практическая применимость</span>
+                                        <div class="criteria-bar-meta">
+                                            <strong>{{ score }}%</strong>
+                                            <span class="criteria-bar-status">
+                                                {% if score >= 75 %}Высокая{% elif score >= 50 %}Средняя{% else %}Низкая{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="criteria-bar-track">
+                                        <div class="criteria-bar-fill" style="width: {{ score }}%"></div>
+                                    </div>
+                                </article>
+                                {% endwith %}
+
+                                {% with score=result.criteria_scores.expected_results.score %}
+                                <article class="criteria-legend-item criteria-legend-item-results">
+                                    <div class="criteria-bar-head">
+                                        <span data-i18n="criterion_results">Ожидаемые результаты</span>
+                                        <div class="criteria-bar-meta">
+                                            <strong>{{ score }}%</strong>
+                                            <span class="criteria-bar-status">
+                                                {% if score >= 75 %}Высокая{% elif score >= 50 %}Средняя{% else %}Низкая{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="criteria-bar-track">
+                                        <div class="criteria-bar-fill" style="width: {{ score }}%"></div>
+                                    </div>
+                                </article>
+                                {% endwith %}
+
+                                {% with score=result.criteria_scores.socio_economic_effect.score %}
+                                <article class="criteria-legend-item criteria-legend-item-social">
+                                    <div class="criteria-bar-head">
+                                        <span data-i18n="criterion_social">Соц-экономический эффект</span>
+                                        <div class="criteria-bar-meta">
+                                            <strong>{{ score }}%</strong>
+                                            <span class="criteria-bar-status">
+                                                {% if score >= 75 %}Высокая{% elif score >= 50 %}Средняя{% else %}Низкая{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="criteria-bar-track">
+                                        <div class="criteria-bar-fill" style="width: {{ score }}%"></div>
+                                    </div>
+                                </article>
+                                {% endwith %}
+
+                                {% with score=result.criteria_scores.feasibility.score %}
+                                <article class="criteria-legend-item criteria-legend-item-feasibility">
+                                    <div class="criteria-bar-head">
+                                        <span data-i18n="criterion_feasibility">Реализуемость</span>
+                                        <div class="criteria-bar-meta">
+                                            <strong>{{ score }}%</strong>
+                                            <span class="criteria-bar-status">
+                                                {% if score >= 75 %}Высокая{% elif score >= 50 %}Средняя{% else %}Низкая{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="criteria-bar-track">
+                                        <div class="criteria-bar-fill" style="width: {{ score }}%"></div>
+                                    </div>
+                                </article>
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="result-card">
+                    <h3 data-i18n="strengths_weaknesses">Сильные и слабые стороны</h3>
+                    <div class="dual-grid">
+                        <div class="result-subsection">
+                            <h4 data-i18n="strengths">Сильные стороны</h4>
+                            {% if result.strengths %}
+                                <ul class="result-list">
+                                    {% for item in result.strengths %}
+                                        <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p data-i18n="strengths_empty">Сильные стороны не выделены.</p>
+                            {% endif %}
+                        </div>
+                        <div class="result-subsection">
+                            <h4 data-i18n="weaknesses">Слабые стороны</h4>
+                            {% if result.weaknesses %}
+                                <ul class="result-list">
+                                    {% for item in result.weaknesses %}
+                                        <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p data-i18n="weaknesses_empty">Существенные слабые стороны не перечислены.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="result-card">
+                    <h3 data-i18n="market_title">Анализ рынка</h3>
+                    <div class="market-grid">
+                        <div><h4 data-i18n="market_demand">Востребованность проекта</h4><p>{{ result.market_analysis.demand|default:"Нет данных." }}</p></div>
+                        <div><h4 data-i18n="market_competitors">Наличие аналогов</h4><p>{{ result.market_analysis.competitors|default:"Нет данных." }}</p></div>
+                        <div><h4 data-i18n="market_users">Потенциальные пользователи</h4><p>{{ result.market_analysis.target_users|default:"Нет данных." }}</p></div>
+                        <div><h4 data-i18n="market_value">Практическая ценность</h4><p>{{ result.market_analysis.practical_value|default:"Нет данных." }}</p></div>
+                        <div><h4 data-i18n="market_risks">Риски внедрения</h4><p>{{ result.market_analysis.risks|default:"Нет данных." }}</p></div>
+                    </div>
+                </section>
+
+                <section class="result-card">
+                    <h3 data-i18n="language_title">Ошибки языка</h3>
+                    <div class="triple-grid">
+                        <div class="result-subsection language-box">
+                            <h4 data-i18n="language_grammar">Грамматика</h4>
+                            {% if result.language_issues.grammar %}
+                                <ul class="result-list">
+                                    {% for item in result.language_issues.grammar %}
+                                        <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p data-i18n="language_grammar_empty">Явные грамматические ошибки не выделены.</p>
+                            {% endif %}
+                        </div>
+                        <div class="result-subsection language-box">
+                            <h4 data-i18n="language_spelling">Орфография</h4>
+                            {% if result.language_issues.spelling %}
+                                <ul class="result-list">
+                                    {% for item in result.language_issues.spelling %}
+                                        <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p data-i18n="language_spelling_empty">Явные орфографические ошибки не выделены.</p>
+                            {% endif %}
+                        </div>
+                        <div class="result-subsection language-box">
+                            <h4 data-i18n="language_style">Стиль</h4>
+                            {% if result.language_issues.style %}
+                                <ul class="result-list">
+                                    {% for item in result.language_issues.style %}
+                                        <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p data-i18n="language_style_empty">Стилистические проблемы не зафиксированы.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="result-card">
+                    <h3>Антиплагиат</h3>
+                    <div class="dual-grid">
+                        <div class="result-subsection">
+                            <h4>Уникальность текста</h4>
+                            <p><strong>{{ result.plagiarism.uniqueness_percent }}%</strong></p>
+                            <p>{{ result.plagiarism.comment }}</p>
+                        </div>
+                        <div class="result-subsection">
+                            <h4>Подозрительные фрагменты</h4>
+                            {% if result.plagiarism.suspicious_fragments %}
+                                <ul class="result-list">
+                                    {% for item in result.plagiarism.suspicious_fragments %}
+                                        <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p>Подозрительных фрагментов не найдено.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="result-card">
+                    <h3>Проверка на ИИ</h3>
+                    <div class="dual-grid">
+                        <div class="result-subsection">
+                            <h4>Вероятность ИИ</h4>
+                            <p><strong>{{ result.ai_detection.ai_probability_percent }}%</strong></p>
+                            <p>Тип текста: {{ result.ai_detection.text_type }}</p>
+                        </div>
+                        <div class="result-subsection">
+                            <h4>Причины</h4>
+                            {% if result.ai_detection.reasons %}
+                                <ul class="result-list">
+                                    {% for item in result.ai_detection.reasons %}
+                                        <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p>Причин не указано.</p>
+                            {% endif %}
+                            <p><em>{{ result.ai_detection.final_comment }}</em></p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <section class="panel assistant-panel" data-assistant-url="{% url 'AnalyzAI:ask_ai_assistant' %}">
+            <textarea id="id_assignment_text" hidden>{{ assignment_text }}</textarea>
+            <textarea id="id_report_text" hidden>{{ report_text }}</textarea>
+            <div class="panel-header assistant-header">
+                <div>
+                    <h2 data-i18n="assistant_title">AI-ассистент</h2>
+                    <p data-i18n="assistant_text">Задайте любой вопрос по проекту, отчету, структуре заявки, улучшению текста или подготовке материалов.</p>
+                </div>
+                <span class="assistant-badge" data-i18n="assistant_badge">Всегда на связи</span>
+            </div>
+
+            <div class="assistant-chat" id="assistantChat">
+                <div class="assistant-message assistant-message-bot" data-default-message="true" data-i18n="assistant_welcome">
+                    Я AI-ассистент AnalyzAI. Могу помочь с отчетом, критериями, текстом, структурой заявки и любыми вопросами по проекту.
+                </div>
+            </div>
+
+            <div class="assistant-composer">
+                <textarea id="assistantQuestion" class="assistant-input" rows="3" data-i18n-placeholder="assistant_placeholder" placeholder="Напишите вопрос для AI-ассистента..."></textarea>
+                <button type="button" class="assistant-send-button" id="assistantSendButton">
+                    <span data-i18n="assistant_send">Спросить AI</span>
+                </button>
+            </div>
+            <p class="assistant-error" id="assistantError" hidden></p>
+        </section>
+    </main>
+
+    <script src="{% static 'AnalyzAI/app.js' %}"></script>
+</body>
+</html>
